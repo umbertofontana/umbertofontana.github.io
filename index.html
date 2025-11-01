@@ -15,7 +15,7 @@
       function loadAdmin() {
         // because this script runs on domain.com,
         // we can just point the iframe to /admin
-        iframe.src = "/admin.html" + Date.now(); // cache-buster
+        iframe.src = "/admin.html?" + Date.now(); // cache-buster
       }
 
       // initial load
