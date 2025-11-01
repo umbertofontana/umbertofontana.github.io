@@ -1,3 +1,32 @@
-<head>Ciao!</head>
-<title>Ciao! Ciao!</title>
-<body>Ciao ciao ciao!</body>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Auto-load admin</title>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // create the iframe
+      const iframe = document.createElement("iframe");
+      iframe.id = "adminFrame";
+      iframe.style.width = "100%";
+      iframe.style.height = "500px"; // change as you like
+      document.body.appendChild(iframe);
+
+      function loadAdmin() {
+        // because this script runs on domain.com,
+        // we can just point the iframe to /admin
+        iframe.src = "umbertofontana.it/admin?" + Date.now(); // cache-buster
+      }
+
+      // initial load
+      loadAdmin();
+
+      // refresh every 20 seconds (20,000 ms)
+      setInterval(loadAdmin, 20000);
+    });
+  </script>
+</head>
+<body>
+  <h1>Page</h1>
+</body>
+</html>
