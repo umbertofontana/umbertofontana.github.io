@@ -21,7 +21,7 @@ links:
     class: fa-brands fa-github
   - name: obsidian
     url: https://notes.umbertofontana.it
-    class: fa-brands fa-obsidian
+    class: fa-brands fa-book
 
 # additional stuff
 exclude:
