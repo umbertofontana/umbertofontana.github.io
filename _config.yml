@@ -23,6 +23,10 @@ links:
     url: https://notes.umbertofontana.it
     class: fa-solid fa-book
 
+email:
+  title: pbagnpg\100wvzru\056zr
+  href: mailto:me@umbertofontana.it
+  
 # additional stuff
 exclude:
   - Gemfile
