@@ -1,0 +1,42 @@
+title: Umberto Fontana
+description: Cyber Security Enthusiast
+author:
+  name: Umberto Fontana
+  nickname: umbe
+hostname: umbertofontana.it # used to determine if google analytics should be triggered
+url: https://umbertofontana.it # the base hostname & protocol for your site
+baseurl: "" # the subpath of your site, e.g. /blog/
+permalink: /:title/
+
+# stuff for jekyll-seo-tag
+social:
+  name: Umberto Fontana
+  links:
+    - https://github.com/umbertofontana
+    - https://notes.umbertofontana.it
+
+links:
+  - name: github
+    url: https://github.com/umbertofontana
+    class: fa-brands fa-github
+  - name: obsidian
+    url: https://notes.umbertofontana.it
+    class: fa-brands fa-bluesky
+
+# additional stuff
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - Makefile
+  - README.md
+  - Rakefile
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
