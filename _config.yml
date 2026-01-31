@@ -24,6 +24,10 @@ links:
     class: fa-solid fa-book
   - name: tryhackme
     url: https://tryhackme.com/p/umbertofontana
+    class: fa-solid fa-bug
+  - name: rootme.org
+    url: https://www.root-me.org/faritkozennikov?inc=info&lang=en
+    class: fa-solid fa-skull
 
 email:
   href: znvygb:zr@hzoregbsbagnan.vg
