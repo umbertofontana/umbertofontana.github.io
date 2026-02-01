@@ -22,10 +22,10 @@ links:
   - name: obsidian
     url: https://notes.umbertofontana.it
     class: fa-solid fa-book
-  - name: tryhackme
+  - name: thm
     url: https://tryhackme.com/p/umbertofontana
     class: fa-solid fa-bug
-  - name: rootme.org
+  - name: rootme
     url: https://www.root-me.org/faritkozennikov?inc=info&lang=en
     class: fa-solid fa-skull
   - name: proving grounds
