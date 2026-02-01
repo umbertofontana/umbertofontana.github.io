@@ -28,6 +28,9 @@ links:
   - name: rootme.org
     url: https://www.root-me.org/faritkozennikov?inc=info&lang=en
     class: fa-solid fa-skull
+  - name: proving grounds
+    url: https://portal.offsec.com/public-profile/a1b6e7ad-85d9-4352-ba9c-a78cdc461c6e
+    class: fa-solid fa-flag
 
 email:
   href: znvygb:zr@hzoregbsbagnan.vg
